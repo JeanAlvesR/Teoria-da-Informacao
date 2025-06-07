@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador Interativo da Teoria da Informação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FDF8F0; color: #334155; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link.active { background-color: #F97316; color: #FFFFFF; font-weight: 500; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 40vh; }
+        .venn-diagram { position: relative; width: 350px; height: 200px; margin: 2rem auto; }
+        .venn-circle { position: absolute; border-radius: 50%; opacity: 0.5; transition: all 0.5s ease-in-out; }
+        .venn-label { position: absolute; font-size: 0.8rem; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: all 0.5s ease-in-out; text-align: center; }
+        .info-box { background-color: #FFFBEB; border-left: 4px solid #FBBF24; padding: 1rem; margin-top: 1rem; border-radius: 0.5rem; }
+        .info-box-title { font-weight: 700; color: #D97706; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <aside class="w-full md:w-72 bg-slate-100 border-b md:border-r border-slate-200 flex-shrink-0">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-slate-800">Teoria da Informação</h1>
+            <p class="text-sm text-slate-500 mt-1">Um Guia Interativo (v2)</p>
+        </div>
+        <nav class="p-4">
+            <ul class="space-y-1">
+                <li><a href="#intro" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">Introdução</a></li>
+                <li><a href="#whatisinfo" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">O Que é Informação?</a></li>
+                <li><a href="#entropy" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">Entropia de Shannon</a></li>
+                <li><a href="#compression" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">Compressão: O Limite</a></li>
+                <li><a href="#joint" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">Entropia Conjunta e Condicional</a></li>
+                <li><a href="#mutual" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">Informação Mútua</a></li>
+                <li><a href="#kl" class="nav-link block p-3 rounded-lg text-slate-700 hover:bg-slate-200">Entropia Cruzada &amp; KL</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-4 md:p-10 overflow-y-auto">
+
+        <section id="intro" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">O que é Informação? A Revolução de Shannon</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                Em 1948, Claude Shannon mudou o mundo. Ele propôs uma teoria matemática da comunicação que, crucialmente, ignorava o *significado* das mensagens. Para Shannon, a informação não era sobre semântica, mas sobre **redução de incerteza**. Uma mensagem carrega mais informação quanto mais "surpreendente" ela for. Uma previsão de neve no Saara é muito mais informativa do que uma previsão de sol. Esta aplicação irá explorar essa ideia fundamental e suas consequências profundas, desde a compressão de arquivos que usamos todos os dias até os fundamentos da aprendizagem de máquina.
+            </p>
+             <div class="mt-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-700">O Problema Fundamental da Comunicação</h3>
+                <p class="mt-2 text-slate-600">"O problema fundamental da comunicação é o de reproduzir em um ponto, exata ou aproximadamente, uma mensagem selecionada em outro ponto." - Claude Shannon</p>
+                <p class="mt-4 text-slate-600">A genialidade de Shannon foi focar nos aspectos estatísticos da fonte da mensagem, não no seu conteúdo. Isso permitiu a criação de uma teoria universal que serve de base para toda a era digital.</p>
+            </div>
+        </section>
+
+        <section id="whatisinfo" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">O Que é Informação?</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                Para Shannon, a informação não é sobre o que uma mensagem *significa*, mas sobre a probabilidade de ela ser escolhida de um conjunto de possibilidades. Informação é uma medida da **redução da incerteza**.
+            </p>
+            <div class="info-box">
+                <p class="info-box-title">Analogia: O Carteiro Eficiente</p>
+                <p class="mt-2 text-slate-600">Um carteiro não precisa ler ou entender o conteúdo das cartas para entregá-las corretamente. Ele se concentra no envelope e no endereço. A teoria da informação foca na "embalagem" e no "transporte" da mensagem (os símbolos e o canal), não no seu conteúdo.</p>
+            </div>
+            <div class="mt-6 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-700">A Medida Logarítmica e o Bit</h3>
+                <p class="mt-2 text-slate-600">Shannon usou uma função logarítmica para medir a informação. Isso tem uma propriedade crucial: a informação de eventos independentes se soma. A unidade dessa medida, usando logaritmo de base 2, é o **bit**. Um bit é a quantidade de informação necessária para resolver a incerteza entre duas alternativas igualmente prováveis.</p>
+                <div class="flex items-center justify-center space-x-8 mt-6 text-center">
+                    <div>
+                        <div id="coin" class="w-24 h-24 rounded-full flex items-center justify-center text-4xl bg-slate-200 shadow-inner cursor-pointer select-none">?</div>
+                        <p class="mt-2 font-semibold text-slate-800">Cara ou Coroa?</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-600">Informação Obtida:</p>
+                        <p id="bit-info" class="text-3xl font-bold text-orange-500">0 bits</p>
+                    </div>
+                </div>
+                <button id="flip-coin-btn" class="mt-6 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Lançar Moeda</button>
+            </div>
+        </section>
+
+        <section id="entropy" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">Entropia (H): Medindo a Surpresa Média</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                A entropia, $H(X)$, é a medida da incerteza ou "surpresa média" de uma fonte de informação. Fontes com resultados previsíveis (uma moeda viciada) têm baixa entropia, enquanto fontes com resultados imprevisíveis (um dado honesto) têm alta entropia. A fórmula é $H(X) = - \sum p(x) \log_2 p(x)$.
+            </p>
+             <div class="info-box">
+                <p class="info-box-title">Analogia: A Caixa de Brinquedos</p>
+                <p class="mt-2 text-slate-600">Uma caixa com brinquedos todos misturados e desorganizados tem alta entropia (alta incerteza sobre qual brinquedo você vai pegar). Uma caixa com brinquedos organizados em compartimentos tem baixa entropia.</p>
+            </div>
+            <div class="mt-6 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                 <h3 class="font-bold text-lg text-slate-700">Laboratório de Entropia: O Dado Viciado</h3>
+                 <p class="text-slate-600 mb-4">Ajuste as probabilidades de cada face de um dado e veja como a entropia do sistema muda. A entropia é máxima quando todos os resultados são igualmente prováveis.</p>
+                 <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="w-full md:w-1/2">
+                        <div id="dice-controls"></div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div class="text-center">
+                            <p class="text-slate-600">Entropia Total (H(X)):</p>
+                            <p id="entropy-value" class="text-4xl font-bold text-orange-500">2.585 bits</p>
+                            <p class="text-xs text-slate-500">(Máxima para 6 resultados)</p>
+                        </div>
+                        <div class="chart-container mt-4">
+                            <canvas id="entropyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="compression" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">Compressão: O Limite de Shannon</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                O **Teorema da Codificação de Fonte** de Shannon afirma que é impossível comprimir dados sem perdas para uma taxa média de bits por símbolo menor que a entropia da fonte. A entropia define o limite teórico da compressão. Algoritmos como a **Codificação de Huffman** se aproximam desse limite, dando códigos mais curtos para símbolos mais frequentes.
+            </p>
+            <div class="mt-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-700">Construindo uma Árvore de Huffman</h3>
+                <p class="text-slate-600 mb-4">A partir das frequências de caracteres, o algoritmo constrói uma árvore combinando iterativamente os dois nós de menor frequência. Vamos construir uma para o texto "A_DEAD_DAD_CEDED_A_BEAD".</p>
+                <div class="flex justify-center mb-4">
+                     <button id="huffman-step-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Próximo Passo</button>
+                     <button id="huffman-reset-btn" class="ml-4 bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg">Reiniciar</button>
+                </div>
+                <div id="huffman-visualization" class="p-4 bg-slate-50 rounded-lg min-h-[200px] border">
+                    <p id="huffman-status" class="text-center text-slate-500">Clique em "Próximo Passo" para começar.</p>
+                </div>
+                <div id="huffman-results" class="mt-4 hidden">
+                    <h4 class="font-bold text-slate-700">Resultados da Codificação:</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 mt-2">
+                            <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caractere</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frequência</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código Huffman</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comprimento</th></tr></thead>
+                            <tbody id="huffman-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                    <div id="huffman-summary" class="mt-4 font-semibold text-slate-700"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="joint" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">Entropia Conjunta e Condicional</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                Para entender a relação entre múltiplas variáveis, como Clima (X) e Trânsito (Y), usamos conceitos mais avançados de entropia.
+            </p>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                    <h3 class="font-bold text-lg text-slate-700">Entropia Conjunta H(X, Y)</h3>
+                    <p class="mt-2 text-slate-600">Mede a incerteza total de duas variáveis ocorrendo juntas. É a incerteza sobre o par (Clima, Trânsito). A incerteza conjunta é sempre maior ou igual à incerteza de cada variável individualmente, e é igual à soma das incertezas individuais somente se as variáveis forem independentes.</p>
+                    <p class="mt-2 text-slate-600 font-mono text-sm bg-slate-100 p-2 rounded">$H(X,Y) \le H(X) + H(Y)$</p>
+                </div>
+                 <div class="p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                    <h3 class="font-bold text-lg text-slate-700">Entropia Condicional H(Y|X)</h3>
+                    <p class="mt-2 text-slate-600">Mede a incerteza que resta sobre Y, *dado que* já conhecemos o valor de X. Qual a incerteza sobre o Trânsito, sabendo que está chovendo? Conhecimento nunca aumenta a incerteza, então $H(Y|X) \le H(Y)$.</p>
+                </div>
+            </div>
+             <div class="mt-6 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-700">A Regra da Cadeia</h3>
+                <p class="mt-2 text-slate-600">Esses conceitos são ligados pela Regra da Cadeia, que decompõe a incerteza total:</p>
+                <p class="mt-2 text-slate-800 font-mono text-center text-lg bg-slate-100 p-4 rounded-lg">$H(X,Y) = H(X) + H(Y|X)$</p>
+                <p class="mt-2 text-slate-600">A incerteza total sobre (Clima, Trânsito) é a incerteza sobre o Clima, mais a incerteza que resta sobre o Trânsito depois que sabemos como está o clima.</p>
+            </div>
+        </section>
+
+        <section id="mutual" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">Informação Mútua I(X;Y)</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+               A **Informação Mútua** $I(X;Y)$ mede a informação que X e Y compartilham. Ela quantifica o quanto saber sobre uma variável reduz a incerteza sobre a outra. É a medida da dependência estatística entre elas.
+            </p>
+            <div class="mt-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-700">Diagrama de Venn da Entropia</h3>
+                <p class="text-slate-600 mb-4">Selecione um cenário para ver como a relação entre duas variáveis (X e Y) afeta as entropias. A intersecção é a Informação Mútua.</p>
+                <select id="venn-scenario-select" class="w-full p-2 border rounded-lg bg-white">
+                    <option value="partial">Dependência Parcial (ex: Chuva e Uso de Guarda-chuva)</option>
+                    <option value="independent">Independência (ex: Nevar em Curitiba e Sol em Tóquio)</option>
+                    <option value="dependent">Dependência Total (ex: Y = 2X)</option>
+                </select>
+
+                <div class="venn-diagram">
+                    <div id="venn-x" class="venn-circle bg-blue-500"></div>
+                    <div id="venn-y" class="venn-circle bg-orange-500"></div>
+                    <div id="venn-label-hx" class="venn-label">H(X)</div>
+                    <div id="venn-label-hy" class="venn-label">H(Y)</div>
+                    <div id="venn-label-ixy" class="venn-label">I(X;Y)</div>
+                    <div id="venn-label-hxy" class="venn-label">H(X|Y)</div>
+                    <div id="venn-label-hyx" class="venn-label">H(Y|X)</div>
+                </div>
+                 <div id="venn-explanation" class="text-center text-slate-600 leading-relaxed p-4 bg-slate-50 rounded-lg"></div>
+            </div>
+             <div class="mt-6 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-700">Aplicações da Informação Mútua</h3>
+                <p class="mt-2 text-slate-600">A Informação Mútua é poderosa por capturar relações não-lineares, sendo usada em:</p>
+                <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600">
+                    <li><b>Aprendizado de Máquina:</b> Para selecionar as características (features) mais informativas de um dataset para treinar um modelo preditivo.</li>
+                    <li><b>Diagnóstico Médico:</b> Para quantificar a força da associação entre sintomas e doenças, ajudando a priorizar testes e identificar redundâncias.</li>
+                    <li><b>Neurociência:</b> Para estudar a conectividade funcional no cérebro, medindo a dependência entre a atividade de diferentes regiões.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="kl" class="content-section">
+            <h2 class="text-3xl font-bold text-slate-800">Entropia Cruzada & Divergência KL</h2>
+            <p class="mt-4 text-lg text-slate-600 leading-relaxed">
+                Em aprendizado de máquina, criamos um modelo (Q) para aproximar a realidade (P). A **Divergência de Kullback-Leibler** $D_{KL}(P||Q)$ mede a "penalidade em bits" por usar o modelo Q em vez da distribuição real P. A **Entropia Cruzada** $H(P,Q)$ é o custo total de usar o modelo Q.
+            </p>
+             <div class="info-box">
+                <p class="info-box-title">Relação Fundamental e Função de Perda</p>
+                <p class="mt-2 text-slate-600">A relação é $H(P,Q) = H(P) + D_{KL}(P||Q)$. Como a entropia da realidade $H(P)$ é fixa, minimizar a Entropia Cruzada durante o treinamento de um modelo é o mesmo que minimizar a Divergência KL. Por isso, a Entropia Cruzada é uma das funções de perda (loss functions) mais importantes em problemas de classificação.</p>
+            </div>
+             <div class="mt-6 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+                 <h3 class="font-bold text-lg text-slate-700">Laboratório de Divergência KL</h3>
+                 <p class="text-slate-600 mb-4">A distribuição 'P' é a realidade (fixa). Ajuste as probabilidades do seu 'Modelo Q' e tente aproximá-lo de P. Veja como a Entropia Cruzada e a Divergência KL diminuem à medida que seu modelo melhora.</p>
+                 <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="w-full md:w-1/2">
+                        <div id="kl-controls"></div>
+                    </div>
+                    <div class="w-full md:w-1/2">
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div><p class="text-slate-600 text-sm">H(P)</p><p id="kl-hp" class="font-bold text-lg text-blue-600">0</p></div>
+                            <div><p class="text-slate-600 text-sm">H(P,Q)</p><p id="kl-hpq" class="font-bold text-lg text-slate-800">0</p></div>
+                            <div><p class="text-slate-600 text-sm">$D_{KL}(P||Q)$</p><p id="kl-dkl" class="font-bold text-lg text-orange-500">0</p></div>
+                        </div>
+                        <div class="chart-container mt-4">
+                            <canvas id="klChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sections = document.querySelectorAll('.content-section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    function updateActiveState(hash) {
+        let activeHash = hash || window.location.hash || '#intro';
+        if (!document.querySelector(activeHash)) {
+            activeHash = '#intro';
+        }
+
+        sections.forEach(section => {
+            section.classList.toggle('active', '#' + section.id === activeHash);
+        });
+
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === activeHash);
+        });
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            history.pushState(null, null, targetId);
+            updateActiveState(targetId);
+        });
+    });
+
+    window.addEventListener('popstate', () => updateActiveState(window.location.hash));
+
+    const log2 = (n) => n > 0 ? Math.log2(n) : 0;
+
+    function calculateEntropy(probs) {
+        return -probs.reduce((sum, p) => sum + p * log2(p), 0);
+    }
+    
+    function normalizeProbs(probs, changedIndex, newValue) {
+        let newProbs = [...probs];
+        newProbs[changedIndex] = newValue;
+        
+        let sum = newProbs.reduce((a, b) => a + b, 0);
+        let otherSum = sum - newValue;
+        
+        if (otherSum > 1 - newValue) {
+            let scale = (1 - newValue) / otherSum;
+            for (let i = 0; i < newProbs.length; i++) {
+                if (i !== changedIndex) {
+                    newProbs[i] *= scale;
+                }
+            }
+        }
+        
+        sum = newProbs.reduce((a, b) => a + b, 0);
+        if (Math.abs(1 - sum) > 1e-9) {
+           const scale = 1 / sum;
+           newProbs = newProbs.map(p => p * scale);
+        }
+        
+        return newProbs;
+    }
+
+
+    const coin = document.getElementById('coin');
+    const bitInfo = document.getElementById('bit-info');
+    const flipCoinBtn = document.getElementById('flip-coin-btn');
+    if(flipCoinBtn) {
+        flipCoinBtn.addEventListener('click', () => {
+            const result = Math.random() < 0.5 ? 'C' : 'K';
+            coin.textContent = result === 'C' ? '🙂' : '👑';
+            bitInfo.textContent = '1 bit';
+            setTimeout(() => {
+                 coin.textContent = '?';
+                 bitInfo.textContent = '0 bits';
+            }, 2000);
+        });
+    }
+
+    let entropyChart, klChart;
+
+    function setupEntropyLab() {
+        const diceControlsContainer = document.getElementById('dice-controls');
+        if (!diceControlsContainer) return;
+        diceControlsContainer.innerHTML = '';
+        
+        const entropyValue = document.getElementById('entropy-value');
+        const diceLabels = ['1', '2', '3', '4', '5', '6'];
+        let diceProbs = Array(6).fill(1 / 6);
+        
+        const update = () => {
+            const entropy = calculateEntropy(diceProbs);
+            entropyValue.textContent = `${entropy.toFixed(3)} bits`;
+            if (entropyChart) {
+                entropyChart.data.datasets[0].data = diceProbs;
+                entropyChart.update('none');
+            }
+            document.querySelectorAll('#dice-controls .slider-label').forEach((label, i) => {
+                label.textContent = `${(diceProbs[i] * 100).toFixed(1)}%`;
+            });
+            document.querySelectorAll('#dice-controls input[type="range"]').forEach((input, i) => {
+                input.value = diceProbs[i];
+            });
+        };
+
+        diceLabels.forEach((label, i) => {
+            const controlDiv = document.createElement('div');
+            controlDiv.className = 'mb-2';
+            controlDiv.innerHTML = `
+                <label class="text-sm font-medium text-slate-700 flex justify-between">
+                    <span>Face ${label}:</span>
+                    <span class="font-mono bg-slate-100 p-1 rounded slider-label">${(diceProbs[i] * 100).toFixed(1)}%</span>
+                </label>
+                <input type="range" min="0" max="1" step="0.01" value="${diceProbs[i]}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            `;
+            diceControlsContainer.appendChild(controlDiv);
+
+            controlDiv.querySelector('input').addEventListener('input', (e) => {
+                diceProbs = normalizeProbs(diceProbs, i, parseFloat(e.target.value));
+                update();
+            });
+        });
+
+        const ctx = document.getElementById('entropyChart').getContext('2d');
+        if(window.entropyChart instanceof Chart) window.entropyChart.destroy();
+        entropyChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: diceLabels, datasets: [{ label: 'Probabilidade', data: diceProbs, backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 1, title: { display: true, text: 'Probabilidade' } } }, plugins: { legend: { display: false }, tooltip: { enabled: true } } }
+        });
+        window.entropyChart = entropyChart;
+        update();
+    }
+    
+    let huffmanState;
+
+    function setupHuffmanLab() {
+        const huffmanVis = document.getElementById('huffman-visualization');
+        const huffmanStepBtn = document.getElementById('huffman-step-btn');
+        const huffmanResetBtn = document.getElementById('huffman-reset-btn');
+        const huffmanResults = document.getElementById('huffman-results');
+        const huffmanTableBody = document.getElementById('huffman-table-body');
+        const huffmanSummary = document.getElementById('huffman-summary');
+        
+        if(!huffmanVis) return;
+
+        const resetHuffman = () => {
+            const text = "A_DEAD_DAD_CEDED_A_BEAD";
+            const freqs = {};
+            for (const char of text) { freqs[char] = (freqs[char] || 0) + 1; }
+
+            huffmanState = {
+                step: 0,
+                nodes: Object.entries(freqs).map(([char, freq]) => ({ char, freq, children: [] })).sort((a,b) => a.freq - b.freq || a.char.localeCompare(b.char)),
+                text: text,
+                finalCodes: null,
+                entropy: calculateEntropy(Object.values(freqs).map(f => f / text.length))
+            };
+            huffmanVis.innerHTML = '<p id="huffman-status" class="text-center text-slate-500">Pronto. Clique em "Próximo Passo".</p>';
+            huffmanResults.classList.add('hidden');
+            huffmanTableBody.innerHTML = '';
+            huffmanSummary.innerHTML = '';
+            huffmanStepBtn.disabled = false;
+        };
+        
+        const huffmanStep = () => {
+            if (huffmanState.nodes.length > 1) {
+                huffmanState.step++;
+                const node1 = huffmanState.nodes.shift();
+                const node2 = huffmanState.nodes.shift();
+                const newNode = { char: `(N${huffmanState.step})`, freq: node1.freq + node2.freq, children: [node1, node2] };
+                huffmanState.nodes.push(newNode);
+                huffmanState.nodes.sort((a,b) => a.freq - b.freq || a.char.localeCompare(b.char));
+
+                huffmanVis.innerHTML = `
+                    <p class="font-semibold mb-2">Passo ${huffmanState.step}: Combinando os 2 nós de menor frequência</p>
+                    <div class="flex justify-around items-center text-center">
+                        <div class="p-2 border rounded bg-blue-100">"${node1.char}"<br>Freq: ${node1.freq}</div> <div class="text-2xl">+</div>
+                        <div class="p-2 border rounded bg-blue-100">"${node2.char}"<br>Freq: ${node2.freq}</div> <div class="text-2xl">→</div>
+                        <div class="p-2 border rounded bg-green-100">"${newNode.char}"<br>Freq: ${newNode.freq}</div>
+                    </div>
+                    <p class="font-semibold mt-4">Fila de Prioridade Atual:</p>
+                    <div class="flex flex-wrap gap-2 mt-2">${huffmanState.nodes.map(n => `<div class="p-2 border rounded bg-slate-100 text-sm">"${n.char}": ${n.freq}</div>`).join('')}</div>
+                `;
+            } else {
+                huffmanVis.innerHTML = '<p class="font-semibold text-center text-green-600">Árvore Completa!</p>';
+                huffmanStepBtn.disabled = true;
+                generateHuffmanCodes();
+            }
+        };
+
+        const generateHuffmanCodes = () => {
+            const codes = {};
+            function traverse(node, code) {
+                if (!node) return;
+                if (node.children.length === 0) { codes[node.char] = code || '0'; return; }
+                traverse(node.children[0], code + '0');
+                traverse(node.children[1], code + '1');
+            }
+            traverse(huffmanState.nodes[0], '');
+            huffmanState.finalCodes = codes;
+            displayHuffmanResults();
+        };
+    
+        const displayHuffmanResults = () => {
+            huffmanResults.classList.remove('hidden');
+            let totalHuffmanBits = 0;
+            const originalFreqs = {};
+            for (const char of huffmanState.text) { originalFreqs[char] = (originalFreqs[char] || 0) + 1; }
+
+            const sortedChars = Object.keys(huffmanState.finalCodes).sort();
+            
+            huffmanTableBody.innerHTML = '';
+            for (const char of sortedChars) {
+                const code = huffmanState.finalCodes[char];
+                const freq = originalFreqs[char];
+                if (!freq) continue;
+                totalHuffmanBits += freq * code.length;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-medium text-gray-900">${char === '_' ? 'ESPAÇO' : char}</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-500">${freq}</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-500 font-mono">${code}</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm text-gray-500">${code.length}</div></td>
+                `;
+                huffmanTableBody.appendChild(row);
+            }
+
+            const avgHuffmanLength = totalHuffmanBits / huffmanState.text.length;
+            const uniqueChars = Object.keys(originalFreqs).length;
+            const fixedLength = Math.ceil(log2(uniqueChars));
+            const totalFixedBits = fixedLength * huffmanState.text.length;
+
+            huffmanSummary.innerHTML = `
+                <p>Comprimento médio (Huffman): ${avgHuffmanLength.toFixed(3)} bits/símbolo</p>
+                <p>Comprimento fixo necessário: ${fixedLength} bits/símbolo</p>
+                <p>Entropia da fonte (limite teórico): ${huffmanState.entropy.toFixed(3)} bits/símbolo</p>
+                <p class="mt-2 text-green-700">Total de bits (Huffman): ${totalHuffmanBits} | Total de bits (Fixo): ${totalFixedBits}</p>
+            `;
+        };
+
+        huffmanResetBtn.addEventListener('click', resetHuffman);
+        huffmanStepBtn.addEventListener('click', huffmanStep);
+        resetHuffman();
+    }
+
+    function setupVennDiagram() {
+        const vennScenarioSelect = document.getElementById('venn-scenario-select');
+        if (!vennScenarioSelect) return;
+        const vennX = document.getElementById('venn-x');
+        const vennY = document.getElementById('venn-y');
+        const vennLabelHx = document.getElementById('venn-label-hx');
+        const vennLabelHy = document.getElementById('venn-label-hy');
+        const vennLabelIxy = document.getElementById('venn-label-ixy');
+        const vennLabelHxy = document.getElementById('venn-label-hxy');
+        const vennLabelHyx = document.getElementById('venn-label-hyx');
+        const vennExplanation = document.getElementById('venn-explanation');
+        
+        const vennScenarios = {
+            partial: {
+                x: { left: '10%', width: '60%', height: '100%' }, y: { left: '30%', width: '60%', height: '100%' },
+                labels: { hx: { top: '45%', left: '20%' }, hy: { top: '45%', right: '20%' }, ixy: { top: '45%', left: '46%' }, hxy: { top: '10%', left: '15%' }, hyx: { top: '10%', right: '15%' } },
+                explanation: `<b>Dependência Parcial:</b> H(X) e H(Y) se sobrepõem. A intersecção é a Informação Mútua $I(X;Y) > 0$. Conhecer X reduz a incerteza sobre Y, mas não a elimina, então a entropia condicional $H(Y|X) > 0$.`
+            },
+            independent: {
+                x: { left: '0%', width: '48%', height: '100%' }, y: { left: '52%', width: '48%', height: '100%' },
+                labels: { hx: { top: '45%', left: '24%' }, hy: { top: '45%', right: '24%' }, ixy: { top: '45%', left: '48%', display: 'none' }, hxy: { top: '10%', left: '20%' }, hyx: { top: '10%', right: '20%' } },
+                explanation: `<b>Independência:</b> Não há sobreposição. A Informação Mútua $I(X;Y) = 0$. Conhecer X não informa nada sobre Y, então $H(Y|X) = H(Y)$. A entropia conjunta é a soma das entropias individuais: $H(X,Y) = H(X) + H(Y)$.`
+            },
+            dependent: {
+                x: { left: '20%', width: '60%', height: '100%' }, y: { left: '20%', width: '60%', height: '100%' },
+                 labels: { hx: { display: 'none' }, hy: { display: 'none' }, ixy: { top: '45%', left: '46%' }, hxy: { display: 'none' }, hyx: { display: 'none' } },
+                explanation: `<b>Dependência Total:</b> Os círculos se sobrepõem perfeitamente. A Informação Mútua é igual à entropia individual: $I(X;Y) = H(X) = H(Y)$. Conhecer X elimina toda a incerteza sobre Y, então a entropia condicional $H(Y|X) = 0$.`
+            }
+        };
+
+        const updateVennDiagram = (scenario) => {
+            const s = vennScenarios[scenario];
+            Object.assign(vennX.style, s.x);
+            Object.assign(vennY.style, s.y);
+            
+            const allLabels = { hx: vennLabelHx, hy: vennLabelHy, ixy: vennLabelIxy, hxy: vennLabelHxy, hyx: vennLabelHyx };
+            Object.values(allLabels).forEach(l => l.style.display = 'block');
+            
+            Object.keys(s.labels).forEach(key => Object.assign(allLabels[key].style, s.labels[key]));
+            vennExplanation.innerHTML = s.explanation;
+        }
+        vennScenarioSelect.addEventListener('change', (e) => updateVennDiagram(e.target.value));
+        updateVennDiagram('partial');
+    }
+
+    function setupKLLab() {
+        const klControlsContainer = document.getElementById('kl-controls');
+        if(!klControlsContainer) return;
+        klControlsContainer.innerHTML = '';
+        
+        const klHp = document.getElementById('kl-hp');
+        const klHpq = document.getElementById('kl-hpq');
+        const klDkl = document.getElementById('kl-dkl');
+        
+        const klLabels = ['A', 'B', 'C', 'D'];
+        const distP = [0.1, 0.2, 0.6, 0.1];
+        let distQ = [0.25, 0.25, 0.25, 0.25];
+
+        const calculateKL = () => {
+            const H_P = calculateEntropy(distP);
+            const H_PQ = -distP.reduce((sum, p, i) => sum + p * log2(distQ[i]), 0);
+            const D_KL = H_PQ - H_P;
+            
+            klHp.textContent = H_P.toFixed(3);
+            klHpq.textContent = H_PQ.toFixed(3);
+            klDkl.textContent = D_KL.toFixed(3);
+            
+            if(klChart) {
+                klChart.data.datasets[1].data = distQ;
+                klChart.update('none');
+            }
+
+             document.querySelectorAll('#kl-controls .slider-label').forEach((label, i) => {
+                label.textContent = `${(distQ[i] * 100).toFixed(1)}%`;
+            });
+            document.querySelectorAll('#kl-controls input[type="range"]').forEach((input, i) => {
+                input.value = distQ[i];
+            });
+        }
+
+        klLabels.forEach((label, i) => {
+            const controlDiv = document.createElement('div');
+            controlDiv.className = 'mb-2';
+            controlDiv.innerHTML = `
+                <label class="text-sm font-medium text-slate-700 flex justify-between">
+                    <span>Modelo Q(${label}):</span>
+                    <span class="font-mono bg-slate-100 p-1 rounded slider-label">${(distQ[i] * 100).toFixed(1)}%</span>
+                </label>
+                <input type="range" min="0.01" max="1" step="0.01" value="${distQ[i]}" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            `;
+            klControlsContainer.appendChild(controlDiv);
+
+            controlDiv.querySelector('input').addEventListener('input', (e) => {
+                distQ = normalizeProbs(distQ, i, parseFloat(e.target.value));
+                calculateKL();
+            });
+        });
+
+        const ctx = document.getElementById('klChart').getContext('2d');
+        if(window.klChart instanceof Chart) window.klChart.destroy();
+        klChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: klLabels, datasets: [ { label: 'Realidade P', data: distP, backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1 }, { label: 'Modelo Q', data: distQ, backgroundColor: 'rgba(249, 115, 22, 0.5)', borderColor: 'rgba(249, 115, 22, 1)', borderWidth: 1 } ] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 1 } }, plugins: { legend: { position: 'top' } } }
+        });
+        window.klChart = klChart;
+        calculateKL();
+    }
+    
+    // Initial setup
+    updateActiveState();
+    setupEntropyLab();
+    setupHuffmanLab();
+    setupVennDiagram();
+    setupKLLab();
+
+});
+</script>
+</body>
+</html>
